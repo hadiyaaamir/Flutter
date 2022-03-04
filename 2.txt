@@ -1,0 +1,16 @@
+
+List<String> names = [
+    'Hadiya',
+    'Jaw',
+    'Em',
+    'Faiza',
+    'Maheen',
+];
+
+body: ListView.builder(
+        itemBuilder: (context, index) => ListTile(
+          title: Text(names[index]),
+          subtitle: const Text('Yeh bhi pagal hai'),
+        ),
+        itemCount: names.length,
+      ),
