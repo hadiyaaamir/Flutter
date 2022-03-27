@@ -21,8 +21,6 @@ class _NewTaskState extends State<NewTask> {
   bool noDesc = false;
   bool noDate = false;
 
-  List<User> _users = [];
-
   @override
   void initState() {
     // TODO: implement initState
@@ -100,53 +98,6 @@ class _NewTaskState extends State<NewTask> {
       ),
     );
   }
-
-  //Sir W's code
-
-  Future<void> addUser() async {
-    // Call the user's CollectionReference to add a new user
-    CollectionReference users = FirebaseFirestore.instance.collection('Users');
-    final user = User(name: 'Waleed', email: 'waleed@gmail.com');
-    users
-        .add(user.toJson())
-        .then((value) => print("User Added"))
-        .catchError((error) => print("Failed to add user: $error"));
-  }
-
-  void getUsers() {
-    // isLoading = true;
-    setState(() {});
-    FirebaseFirestore.instance
-        .collection('Users')
-        .get()
-        .then((QuerySnapshot querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        _users.add(User.fromJson(doc.data() as Map<String, dynamic>));
-      });
-      // isLoading = false;
-      setState(() {});
-    });
-  }
-}
-
-class User {
-  final String name;
-  final String email;
-
-  User({required this.name, required this.email});
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['name'] = name;
-    data['email'] = email;
-
-    return data;
-  }
-
-  static User fromJson(Map<String, dynamic> json) => User(
-        name: json['name'],
-        email: json['email'],
-      );
 }
 
 // my code again

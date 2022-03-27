@@ -10,19 +10,6 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // [
-  //   Task(
-  //     title: 'Test Task',
-  //     description: 'This is a test',
-  //     dueDate: DateTime(2022, 3, 23),
-  //   ),
-  //   Task(
-  //     title: 'Test 2',
-  //     description: 'Helloo',
-  //     dueDate: DateTime(2022, 3, 27),
-  //   ),
-  // ];
-
   List<Task> get tasks {
     return _tasks;
   }
@@ -95,11 +82,10 @@ class TaskProvider extends ChangeNotifier {
         print("Task Edited!");
       });
     });
-    getTasks();
     task.title = title;
     task.description = desc;
     task.dueDate = date;
-    // notifyListeners();
+    getTasks();
   }
 
   Future<void> markTask(Task task) async {
@@ -140,7 +126,6 @@ class TaskProvider extends ChangeNotifier {
     await removeTask(task);
     tasks.remove(task);
     await addTask(task);
-    // notifyListeners();
   }
 
   bool isTaskMarked(Task task) {

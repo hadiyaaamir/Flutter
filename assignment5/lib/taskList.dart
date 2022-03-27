@@ -12,6 +12,8 @@ class TaskList extends StatefulWidget {
 }
 
 class _TaskListState extends State<TaskList> {
+  bool isLoading = false;
+
   @override
   void initState() {
     // TODO: implement initState
