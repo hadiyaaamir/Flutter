@@ -17,7 +17,7 @@ class TaskProvider extends ChangeNotifier {
   //get from DB
   void getTasks() async {
     _tasks = [];
-    FirebaseFirestore.instance
+    await FirebaseFirestore.instance
         .collection('Tasks')
         .get()
         .then((QuerySnapshot querySnapshot) {
@@ -25,19 +25,17 @@ class TaskProvider extends ChangeNotifier {
         addInOrder(Task.fromJson(doc.data() as Map<String, dynamic>));
       });
     });
+    notifyListeners();
   }
 
   //add to DB
   Future<void> addTask(Task t) async {
-    //DB add code
-
     await taskList
         .add(t.toJson())
         .then((value) => print("Task Added"))
         .catchError((error) => print("Failed to add task: $error"));
 
     getTasks();
-    // notifyListeners();
   }
 
   //add in order - list
@@ -52,22 +50,16 @@ class TaskProvider extends ChangeNotifier {
         tasks[i] = temp;
       }
     }
-    notifyListeners();
+    // notifyListeners();
   }
 
   Future<void> removeTask(Task task) async {
     await taskList.where("title", isEqualTo: task.title).get().then((value) {
       taskList.doc(value.docs[0].id).delete().then((value) {
         print("Task Deleted!");
+        getTasks();
       });
     });
-
-    getTasks();
-    tasks.remove(task);
-
-    QuerySnapshot<Object?> _query = await taskList.get();
-
-    if (_query.docs.isEmpty) notifyListeners();
   }
 
   Future<void> editTask({
@@ -76,56 +68,50 @@ class TaskProvider extends ChangeNotifier {
     required String desc,
     required DateTime date,
   }) async {
-    await taskList.where('title', isEqualTo: task.title).get().then((value) {
+    await taskList
+        .where('title', isEqualTo: task.title)
+        .where('description', isEqualTo: task.description)
+        .where('dueDate', isEqualTo: task.dueDate)
+        .get()
+        .then((value) {
       taskList.doc(value.docs[0].id).update(
           {'title': title, 'description': desc, 'dueDate': date}).then((value) {
         print("Task Edited!");
+        task.title = title;
+        task.description = desc;
+        task.dueDate = date;
+        getTasks();
       });
     });
-    task.title = title;
-    task.description = desc;
-    task.dueDate = date;
-    getTasks();
   }
 
   Future<void> markTask(Task task) async {
-    task.isMarked = true;
-    task.dateMarked = DateTime.now();
-
     //change in DB
 
     await taskList.where('title', isEqualTo: task.title).get().then((value) {
       taskList.doc(value.docs[0].id).update(
-          {'isMarked': true, 'dateMarked': DateTime.now()}).then((value) {
+          {'isMarked': true, 'dateMarked': DateTime.now()}).then((value) async {
+        task.isMarked = true;
+        task.dateMarked = DateTime.now();
+        getTasks();
         print("Task Marked as Done!");
       });
     });
-
-    // add again so its in order
-    await removeTask(task);
-    tasks.remove(task);
-    await addTask(task);
-    // notifyListeners();
   }
 
   Future<void> unmarkTask(Task task) async {
-    task.isMarked = false;
-    task.dateMarked = null;
-
     //DB
 
     await taskList.where('title', isEqualTo: task.title).get().then((value) {
       taskList
           .doc(value.docs[0].id)
-          .update({'isMarked': false, 'dateMarked': null}).then((value) {
-        print("Task Marked as Done!");
+          .update({'isMarked': false, 'dateMarked': null}).then((value) async {
+        task.isMarked = false;
+        task.dateMarked = null;
+        getTasks();
+        print("Task unmarked!");
       });
     });
-
-    // add again so its in order
-    await removeTask(task);
-    tasks.remove(task);
-    await addTask(task);
   }
 
   bool isTaskMarked(Task task) {
@@ -135,6 +121,10 @@ class TaskProvider extends ChangeNotifier {
   bool isTaskLate(Task task) {
     return task.dueDate.isBefore(DateTime.now()) &&
         task.dueDate.day != DateTime.now().day;
+  }
+
+  DateTime getDuedate(Task task) {
+    return task.dueDate;
   }
 }
 

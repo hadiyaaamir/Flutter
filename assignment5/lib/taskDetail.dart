@@ -21,18 +21,15 @@ class _TaskDetailState extends State<TaskDetail> {
   late bool isLate;
 
   @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    isLate = widget.task.dueDate.isBefore(DateTime.now()) &&
-        widget.task.dueDate.day != DateTime.now().day;
-  }
-
-  @override
   Widget build(BuildContext context) {
     List<Task> tasks = context.watch<TaskProvider>().tasks;
 
     isMarked = context.read<TaskProvider>().isTaskMarked(widget.task);
+    DateTime dueDate = context.read<TaskProvider>().getDuedate(widget.task);
+
+    isLate =
+        dueDate.isBefore(DateTime.now()) && dueDate.day != DateTime.now().day;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.task.title),
@@ -72,11 +69,11 @@ class _TaskDetailState extends State<TaskDetail> {
               padding: const EdgeInsets.only(top: 45, bottom: 10),
               child: Text(
                 "Due Date: " +
-                    widget.task.dueDate.day.toString() +
+                    dueDate.day.toString() +
                     "/" +
-                    widget.task.dueDate.month.toString() +
+                    dueDate.month.toString() +
                     "/" +
-                    widget.task.dueDate.year.toString(),
+                    dueDate.year.toString(),
                 style: const TextStyle(fontSize: 16),
               ),
             ),
