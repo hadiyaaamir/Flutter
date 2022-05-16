@@ -1,9 +1,12 @@
-import 'package:animation/animatedLogo.dart';
 import 'package:flutter/material.dart';
+import 'package:spring/spring.dart';
 
 void main() {
   runApp(const MyApp());
 }
+
+late Animation<double> animation;
+late Animation<double> animation2;
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -32,7 +35,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage>
     with SingleTickerProviderStateMixin {
-  late Animation<double> animation;
   late AnimationController controller;
 
   @override
@@ -43,7 +45,17 @@ class _MyHomePageState extends State<MyHomePage>
       vsync: this,
     );
     animation = Tween<double>(begin: 0, end: 300).animate(controller);
+    animation2 = Tween<double>(begin: -1, end: 0).animate(controller);
     controller.forward();
+
+    animation.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        controller.reverse();
+      }
+      if (status == AnimationStatus.dismissed) {
+        controller.forward();
+      }
+    });
 
     animation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -59,6 +71,50 @@ class _MyHomePageState extends State<MyHomePage>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedLogo(animation: animation);
+    final SpringController springController =
+        SpringController(initialAnim: Motion.play);
+
+    return Spring.translate(
+        child: AnimatedLogo(animation: animation),
+        beginOffset: Offset(0, -300),
+        endOffset: Offset(0, 0),
+        animDuration: const Duration(milliseconds: 3000),
+        animStatus: (AnimStatus status) {
+          if (status == AnimStatus.completed) {
+            setState(() {
+              springController.play(
+                motion: Motion.reverse,
+                curve: Curves.bounceInOut,
+              );
+            });
+          }
+        });
+  }
+}
+
+//anim logo
+
+class AnimatedLogo extends AnimatedWidget {
+  const AnimatedLogo({Key? key, required Animation<double> animation})
+      : super(
+          key: key,
+          listenable: animation,
+        );
+
+  @override
+  Widget build(BuildContext context) {
+    final animation = listenable as Animation<double>;
+    final animation2 = listenable as Animation<double>;
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 10),
+          height: animation.value,
+          width: animation.value,
+          child: const FlutterLogo(),
+        ),
+      ),
+    );
   }
 }
